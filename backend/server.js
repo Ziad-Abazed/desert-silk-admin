@@ -18,6 +18,12 @@ const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=u
 export function createStoreServer({dataDir=resolve(root,'data'),publicOrigin=process.env.APP_ORIGIN||'',host=process.env.HOST||'127.0.0.1'}={}){
  mkdirSync(dataDir,{recursive:true});mkdirSync(join(dataDir,'uploads'),{recursive:true});
  const db=new DatabaseSync(join(dataDir,'store.sqlite'));db.exec('PRAGMA journal_mode=WAL;');db.exec(readFileSync(join(root,'backend/schema.sql'),'utf8'));
+ if(!db.prepare('SELECT username FROM owners LIMIT 1').get()&&(process.env.OWNER_USERNAME||process.env.OWNER_PASSWORD)){
+  const username=text(process.env.OWNER_USERNAME,80),password=text(process.env.OWNER_PASSWORD,200);
+  if(password.length<12)throw new Error('OWNER_PASSWORD must contain at least 12 characters.');
+  const salt=randomBytes(32).toString('hex');
+  db.prepare('INSERT INTO owners VALUES(?,?,?)').run(username,salt,scryptSync(password,salt,64).toString('hex'));
+ }
  if(!db.prepare("SELECT value FROM metadata WHERE key='seeded'").get()){
   db.exec('BEGIN IMMEDIATE');try{for(const p of seed)db.prepare('INSERT INTO products(id,data,stock,published) VALUES(?,?,NULL,1)').run(p.id,JSON.stringify({...p,brand:p.real?'Lattafa':'Concept collection',description:'',demo:true}));db.prepare("INSERT INTO metadata VALUES('seeded','1')").run();db.exec('COMMIT')}catch(e){db.exec('ROLLBACK');throw e}
  }

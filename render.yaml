@@ -1,0 +1,24 @@
+# Deployment template only. Creating this service requires a paid plan and disk.
+services:
+  - type: web
+    name: desert-silk-admin
+    runtime: node
+    plan: starter
+    buildCommand: corepack pnpm install --frozen-lockfile && corepack pnpm build
+    startCommand: node backend/server.js
+    healthCheckPath: /api/health
+    disk:
+      name: desert-silk-data
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: 24.19.0
+      - key: HOST
+        value: 0.0.0.0
+      - key: APP_ORIGIN
+        sync: false
+      - key: OWNER_USERNAME
+        sync: false
+      - key: OWNER_PASSWORD
+        sync: false

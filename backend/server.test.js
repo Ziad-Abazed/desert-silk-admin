@@ -4,6 +4,28 @@ import {mkdtempSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createStoreServer} from './server.js';
+test('hosted owner provisioning is private and does not replace an existing owner',async()=>{
+ const dataDir=mkdtempSync(join(tmpdir(),'desert-silk-hosted-test-'));
+ const oldUser=process.env.OWNER_USERNAME,oldPassword=process.env.OWNER_PASSWORD;
+ let server;
+ try{
+  for(const password of ['hosted-test-password-one','hosted-test-password-two']){
+   process.env.OWNER_USERNAME='hosted-test';process.env.OWNER_PASSWORD=password;
+   server=createStoreServer({dataDir,publicOrigin:'https://test.example'});
+   await new Promise(r=>server.listen(0,'127.0.0.1',r));
+   const base='http://127.0.0.1:'+server.address().port;
+   const response=await fetch(base+'/api/auth/login',{method:'POST',headers:{Origin:'https://test.example','Content-Type':'application/json'},body:JSON.stringify({username:'hosted-test',password:'hosted-test-password-one'})});
+   assert.equal(response.status,200);assert.match(response.headers.get('set-cookie'),/Secure/);
+   assert.equal((await fetch(base+'/api/auth/setup',{method:'POST',headers:{Origin:'https://test.example'}})).status,403);
+   await new Promise(r=>server.close(r));
+  }
+ }finally{
+  if(server?.listening)await new Promise(r=>server.close(r));
+  if(oldUser===undefined)delete process.env.OWNER_USERNAME;else process.env.OWNER_USERNAME=oldUser;
+  if(oldPassword===undefined)delete process.env.OWNER_PASSWORD;else process.env.OWNER_PASSWORD=oldPassword;
+  rmSync(dataDir,{recursive:true,force:true});
+ }
+});
 test('owner access, persistence, inventory transactions and review moderation',async()=>{
  const dataDir=mkdtempSync(join(tmpdir(),'desert-silk-test-'));let server,base,cookie='',csrf='';
  async function start(){server=createStoreServer({dataDir,publicOrigin:''});await new Promise(r=>server.listen(0,'127.0.0.1',r));base='http://127.0.0.1:'+server.address().port}
