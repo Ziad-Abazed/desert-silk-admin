@@ -1,0 +1,24 @@
+{
+  "name": "desert-silk-fragrances",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5173 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 4173 --strictPort",
+    "backend": "node backend/server.js",
+    "start": "node backend/server.js",
+    "test": "node --test backend/server.test.js",
+    "backup": "node backend/backup.js"
+  },
+  "engines": {"node": ">=24.0.0"},
+  "dependencies": {
+    "motion": "^14.0.0"
+  },
+  "devDependencies": {
+    "@openai/codex-sdk": "^0.161.0",
+    "motion-studio": "^2.1.0",
+    "vite": "^8.3.3"
+  }
+}

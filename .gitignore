@@ -1,0 +1,9 @@
+node_modules/
+.env.local
+.sites-runtime/
+dist/
+
+data/
+backups/
+*.sqlite*
+.env*
