@@ -5,6 +5,7 @@ import {mkdirSync,readFileSync,writeFileSync,existsSync,statSync} from 'node:fs'
 import {resolve,join,extname,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {products as seed} from '../seed-catalog.js';
+import {seedPublishedCatalog} from './catalog-seed.js';
 
 const root=fileURLToPath(new URL('../',import.meta.url));
 const hash=s=>createHash('sha256').update(s).digest('hex');
@@ -24,9 +25,7 @@ export function createStoreServer({dataDir=resolve(root,'data'),publicOrigin=pro
   const salt=randomBytes(32).toString('hex');
   db.prepare('INSERT INTO owners VALUES(?,?,?)').run(username,salt,scryptSync(password,salt,64).toString('hex'));
  }
- if(!db.prepare("SELECT value FROM metadata WHERE key='seeded'").get()){
-  db.exec('BEGIN IMMEDIATE');try{for(const p of seed)db.prepare('INSERT INTO products(id,data,stock,published) VALUES(?,?,NULL,1)').run(p.id,JSON.stringify({...p,brand:p.real?'Lattafa':'Concept collection',description:'',demo:true}));db.prepare("INSERT INTO metadata VALUES('seeded','1')").run();db.exec('COMMIT')}catch(e){db.exec('ROLLBACK');throw e}
- }
+ seedPublishedCatalog(db,seed);
  const audit=(action,details)=>db.prepare('INSERT INTO audit(action,details,created) VALUES(?,?,?)').run(action,JSON.stringify(details),date());
  const product=row=>({...JSON.parse(row.data),id:row.id,stock:row.stock,published:Boolean(row.published)});
  const order=row=>({...JSON.parse(row.data),id:row.id,status:row.status,tracking:row.tracking,created:row.created});
@@ -39,10 +38,11 @@ export function createStoreServer({dataDir=resolve(root,'data'),publicOrigin=pro
  function issue(res){const token=randomBytes(32).toString('hex'),csrf=randomBytes(32).toString('hex');db.prepare('DELETE FROM sessions WHERE expires<?').run(Date.now());db.prepare('INSERT INTO sessions VALUES(?,?,?)').run(hash(token),csrf,Date.now()+28800000);cookie(res,token);return {authenticated:true,csrf}}
  async function body(req){let size=0,chunks=[];for await(const chunk of req){size+=chunk.length;if(size>7*1024*1024)fail('File or request is too large.',413);chunks.push(chunk)}try{return JSON.parse(Buffer.concat(chunks).toString('utf8'))}catch{fail('Invalid JSON request.')}}
  function validateProduct(p){
-  const price=Number(p.price);if(!Number.isFinite(price)||price<0||price>10000||Math.abs(price*100-Math.round(price*100))>1e-7)fail('Price must be a valid USD amount.');
-  if(!['Woody','Sweet','Floral'].includes(p.category))fail('Choose a scent family.');
+  const price=p.price===null||p.price===''?null:Number(p.price);if(price===null&&p.published)fail('Set a selling price before publishing.');if(price!==null&&(!Number.isFinite(price)||price<0||price>10000||Math.abs(price*100-Math.round(price*100))>1e-7))fail('Price must be a valid USD amount.');
+  if(!['Woody','Sweet','Floral','Fresh'].includes(p.category))fail('Choose a scent family.');
   const image=text(p.image,300);if(!/^(?:[a-zA-Z0-9_-]+\.(?:jpg|jpeg|png|webp)|\/uploads\/[a-f0-9]+\.(?:jpg|png|webp))$/.test(image))fail('Use a local photo or upload a JPEG, PNG, or WebP.');
-  const brand=text(p.brand,80);return {name:text(p.name,120),brand,notes:text(p.notes,300),description:text(p.description||'',2000,false),category:p.category,price:Math.round(price*100)/100,image,size:integer(Number(p.size),1,2000),real:brand!=='Concept collection',label:brand.toUpperCase(),demo:Boolean(p.demo)};
+  const size=p.size===null||p.size===''?null:integer(Number(p.size),1,2000);if(size===null&&p.published)fail('Set a bottle size before publishing.');
+  const brand=text(p.brand,80);return {name:text(p.name,120),brand,notes:text(p.notes,300),description:text(p.description||'',2000,false),category:p.category,price:price===null?null:Math.round(price*100)/100,image,size,real:brand!=='Concept collection',label:brand.toUpperCase(),demo:Boolean(p.demo)};
  }
  const server=http.createServer(async(req,res)=>{
   const send=(value,status=200)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8'});res.end(JSON.stringify(value))};

@@ -37,6 +37,8 @@ test('owner access, persistence, inventory transactions and review moderation',a
  assert.equal((await call('admin/products','POST',product,{'X-CSRF-Token':'bad'})).status,403);
  assert.equal((await call('admin/products','POST',product,{Origin:'https://evil.example'})).status,403);
  assert.equal((await call('admin/products','POST',{...product,stock:-1})).status,400);
+ assert.equal((await call('admin/products','POST',{...product,name:'Hidden draft',price:null,published:false})).status,201);
+ assert.equal((await call('admin/products','POST',{...product,price:null,published:true})).status,400);
  const created=await call('admin/products','POST',product);assert.equal(created.status,201);const id=created.json.id;
  const order={customer:'Test Customer',email:'test@example.com',address:'1 Test Street, Test City 10001',state:'NY',items:[{id,quantity:2}]};
  assert.equal((await call('admin/orders','POST',{...order,state:'HI'})).status,400);

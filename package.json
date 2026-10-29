@@ -9,10 +9,12 @@
     "preview": "vite preview --host 127.0.0.1 --port 4173 --strictPort",
     "backend": "node backend/server.js",
     "start": "node backend/server.js",
-    "test": "node --test backend/server.test.js",
+    "test": "node --test backend/*.test.js",
     "backup": "node backend/backup.js"
   },
-  "engines": {"node": ">=24.0.0"},
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "dependencies": {
     "motion": "^14.0.0"
   },

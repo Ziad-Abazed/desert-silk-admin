@@ -87,3 +87,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
 @media(max-width:800px){.breadcrumbs{display:flex;gap:8px;font-size:12px;margin-bottom:24px}}
 
 .review-entry{padding:24px 0;border-bottom:1px solid var(--line)}.review-entry p{white-space:pre-wrap;line-height:1.7}.product button:disabled,#detail-add:disabled{opacity:.5;cursor:default}
+
+/* Ivory catalog photo backgrounds merge with the existing arched frames. */
+:is(.product-image,.detail-image,.related-photo,.photo-zoom,.heritage-bottle) img[src$="-catalog.png"]{mix-blend-mode:darken}

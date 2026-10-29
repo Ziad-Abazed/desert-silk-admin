@@ -8,8 +8,8 @@ const product=products.find(p=>p.id===Number(requestedId===null?8:requestedId));
 if(!product){document.title='Product not found | Desert Silk Fragrances';document.querySelector('#product-page').className='missing';document.querySelector('#product-page').innerHTML='<p class="eyebrow">Desert Silk Fragrances</p><h1>Product not found.</h1><p>This perfume is not in the demo collection.</p><a class="button" href="index.html#collection">Return to collection</a>'}
 else{
 document.title=product.name+' | Desert Silk Fragrances';
-const categories={Woody:'Woody & oud',Sweet:'Sweet & amber',Floral:'Floral & musk'};
-const descriptions={Woody:'Explore a rich, woody scent profile with depth and warmth.',Sweet:'Explore a warm, sweet scent profile with an inviting gourmand character.',Floral:'Explore a soft scent profile with floral or musky accents.'};
+const categories={Woody:'Woody & oud',Sweet:'Sweet & amber',Floral:'Floral & musk',Fresh:'Fresh & citrus'};
+const descriptions={Fresh:'Explore a fresh fragrance with bright, clean accents.',Woody:'Explore a rich, woody scent profile with depth and warmth.',Sweet:'Explore a warm, sweet scent profile with an inviting gourmand character.',Floral:'Explore a soft scent profile with floral or musky accents.'};
 document.querySelector('#crumb-product').textContent=product.name;
 document.querySelector('#brand').textContent=product.real?'Lattafa · '+categories[product.category]:'Concept collection · '+categories[product.category];
 document.querySelector('#product-name').textContent=product.name;

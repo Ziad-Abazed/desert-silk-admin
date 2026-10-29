@@ -44,3 +44,11 @@ This remains a demo: prices and inventory are examples, and checkout is not conn
 Product discovery includes combined name/brand/scent-note search, brand selection, scent filters, result counts, and clear-filter controls. With the backend running, products load from SQLite and customer reviews are saved for owner approval. Without the backend, the static demo uses seed products and review previews. Online checkout, payments and emails remain unconnected. GitHub Pages cannot run the admin backend.
 
 
+
+## October 29 catalog update
+
+The public catalog snapshot includes 92 published products: the original 13 demo items and 79 new perfumes priced at $40 with one in stock each. All 82 prepared bottle photos are included, and their ivory backgrounds blend into the arched collection and product frames.
+
+`seed-catalog.js` also supplies the static storefront when a backend is unavailable. A new backend database imports the published snapshot. Existing backend databases receive missing products once per catalog release; later restarts preserve stock changes and owner edits. The three original bundled photos are refreshed only if they have not been replaced by the owner.
+
+Private SQLite databases, owner credentials, sessions, orders, backups, local photo paths and research manifests are excluded. GitHub Pages serves the storefront preview; the working admin still requires the Node backend described in HOSTING.md. Building and pushing source does not deploy that backend.
